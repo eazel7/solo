@@ -48,6 +48,7 @@ extern PCD_HandleTypeDef hpcd;
 static int _NFC_status = 0;
 static bool isLowFreq = 0;
 static bool _up_disabled = false;
+static bool _up_wait = false;
 
 // #define IS_BUTTON_PRESSED()         (0  == (LL_GPIO_ReadInputPort(SOLO_BUTTON_PORT) & SOLO_BUTTON_PIN))
 static int is_physical_button_pressed(void)
@@ -124,6 +125,20 @@ void TIM6_DAC_IRQHandler(void)
 #endif
 }
 
+void ctap_store_kbd(CTAP_soloKbd * kbd)
+{
+    uint8_t buf[PAGE_SIZE];
+    memmove(buf, kbd, sizeof(CTAP_soloKbd));
+    flash_erase_page(KEYBOARD_PAGE);
+    flash_write(KEYBOARD_PAGE_ADDR, buf, 2048);
+}
+
+void ctap_load_kbd(CTAP_soloKbd * kbd)
+{
+    uint32_t * ptr = (uint32_t *) flash_addr(KEYBOARD_PAGE);
+    memmove(kbd, ptr, sizeof(CTAP_soloKbd));
+}
+
 // Interrupt on rising edge of button (button released)
 void EXTI0_IRQHandler(void)
 {
@@ -134,6 +149,18 @@ void EXTI0_IRQHandler(void)
         if ((millis() - __last_button_bounce_time) > 25)
         {
             __last_button_press_time = millis();
+#ifndef IS_BOOTLOADER
+            if (!_up_wait)
+            {
+                CTAP_soloKbd kbd;
+                ctap_load_kbd(&kbd);
+                if (kbd.length > 0)
+                {
+                    usb_kbd_send(kbd.sequence, kbd.length);
+                }
+            }
+#endif
+
         }
         __last_button_bounce_time = millis();
     }
@@ -741,6 +768,7 @@ int ctap_user_presence_test(uint32_t up_delay)
 
     // Set LED status and wait.
     led_rgb(0xff3520);
+    _up_wait = true;
 
     // Block and wait for some time.
     ret = wait_for_button_activate(up_delay);
@@ -755,12 +783,14 @@ int ctap_user_presence_test(uint32_t up_delay)
     }
 
 
+    _up_wait = false;
     return 0;
 
 
 done:
     ret = wait_for_button_release(up_delay);
     __last_button_press_time = 0;
+    _up_wait = false;
     return 1;
 
 }

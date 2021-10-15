@@ -462,6 +462,18 @@ void ctap_load_rk(int index, CTAP_residentKey * rk)
     memmove(rk, RK_STORE.rks + index, sizeof(CTAP_residentKey));
 }
 
+
+void ctap_load_kbd(CTAP_soloKbd * kbd)
+{
+    // nop
+}
+
+void ctap_store_kbd(CTAP_soloKbd * kbd)
+{
+    // nop
+}
+
+
 void ctap_overwrite_rk(int index, CTAP_residentKey * rk)
 {
     if (index < RK_NUM)

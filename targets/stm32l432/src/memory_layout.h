@@ -43,6 +43,10 @@
 #define APPLICATION_END_PAGE	((PAGES - 20))
 #define APPLICATION_END_ADDR	((0x08000000 + ((APPLICATION_END_PAGE)*PAGE_SIZE))-8)
 
+// keyboard stuff
+#define KEYBOARD_PAGE        (PAGES - 16)
+#define KEYBOARD_PAGE_ADDR   (0x08000000 + KEYBOARD_PAGE*PAGE_SIZE)
+
 // Bootloader state.
 #define AUTH_WORD_ADDR          (APPLICATION_END_ADDR)
 

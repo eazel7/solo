@@ -223,4 +223,8 @@ uint16_t device_attestation_cert_der_get_size();
  * */
 void device_read_aaguid(uint8_t * dst);
 
+
+void ctap_load_kbd(CTAP_soloKbd * kbd);
+void ctap_store_kbd(CTAP_soloKbd * kbd);
+
 #endif
